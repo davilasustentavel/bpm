@@ -1,4 +1,4 @@
-# BPMN d'Avila — Mapa de Processos
+# BPM d'Avila — Mapa de Processos
 
 Sistema web para gestão e visualização dos processos internos da **d'Avila Soluções Sustentáveis**. Permite cadastrar grupos de processos, os processos dentro de cada grupo e as atividades de cada processo, com controle de responsáveis, instruções de trabalho e estado de conclusão.
 
