@@ -1,2 +1,0 @@
-# bpm
-Business Process Model
