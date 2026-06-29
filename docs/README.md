@@ -19,8 +19,8 @@ O sistema se conecta automaticamente ao banco de dados em nuvem (Supabase). Ao c
 | Item | Quantidade |
 |---|---|
 | Grupos de processos | 17 |
-| Processos cadastrados | 55 |
-| Atividades cadastradas | 185 |
+| Processos cadastrados | 53 |
+| Atividades cadastradas | 193 |
 | Grupos marcados como completos | 2 (Gestão de Propostas · Gestão de Contas a Pagar) |
 
 ---
