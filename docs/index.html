@@ -539,14 +539,44 @@ tr.detail-active>td{background:var(--azul-pale)!important}
           <textarea id="f-como" rows="3" placeholder="Descreva o passo a passo…"></textarea>
         </div>
         <div class="form-group span2">
+          <label>Entrada</label>
+          <textarea id="f-entrada" rows="2" placeholder="O que inicia ou alimenta esta atividade…"></textarea>
+        </div>
+        <div class="form-group span2">
           <label>Saída</label>
           <textarea id="f-saida" rows="2" placeholder="Qual o produto/resultado desta atividade…"></textarea>
+        </div>
+        <div class="form-group span2" id="f-processo-wrap" style="display:none">
+          <div style="border-top:1px solid var(--border-light);margin:4px 0 2px"></div>
+          <label>Mover para outro processo</label>
+          <select id="f-processo"></select>
+          <span class="field-hint">Selecione um processo diferente para mover esta atividade</span>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-ativ')">Cancelar</button>
       <button class="btn btn-primary" onclick="saveAtividade()">Salvar Atividade</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR MOVER ATIVIDADE -->
+<div class="modal-overlay" id="modal-confirm-mover">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title">Mover atividade</span>
+      <button class="modal-close" onclick="cancelarMover()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;line-height:1.7;color:var(--text)">
+        Quer realmente mover a atividade para o processo<br>
+        <strong id="confirm-proc-nome" style="color:var(--azul)"></strong>?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cancelarMover()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarMover()">↪ Mover</button>
     </div>
   </div>
 </div>
@@ -646,6 +676,7 @@ let editingAtivId=null, editingProcessoId=null;
 let editingGrupoId=null, editingPessoaId=null, editingProcId=null;
 let dragSrc=null, dragGrupoSrc=null, dragProcSrc=null;
 let currentUser=null;
+let pendingMoverPayload=null, pendingMoverProcId=null;
 
 // ── AUTH HELPERS ──
 // canEdit  → admin OU editor: pode criar/editar atividades
@@ -1580,42 +1611,89 @@ Ela será removida como responsável das atividades.`)) return;
 function openModalNova(procId) {
   editingAtivId=null; editingProcessoId=procId;
   document.getElementById('modal-ativ-title').textContent='Nova Atividade';
-  ['f-oq','f-quem','f-quando','f-onde','f-porque','f-como','f-saida','f-instr'].forEach(id=>document.getElementById(id).value='');
+  ['f-oq','f-quem','f-quando','f-onde','f-porque','f-como','f-entrada','f-saida','f-instr'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-processo-wrap').style.display='none';
   openModal('modal-ativ');
 }
 function openModalEdit(ativId) {
   const a=atividades.find(x=>x.id===ativId); if(!a) return;
   editingAtivId=ativId; editingProcessoId=a.processo_id;
   document.getElementById('modal-ativ-title').textContent='Editar Atividade';
-  document.getElementById('f-oq').value=a.o_que||''
-  document.getElementById('f-quem').value=a.quem_id||''
-  document.getElementById('f-quando').value=a.quando||''
-  document.getElementById('f-onde').value=a.onde||''
-  document.getElementById('f-porque').value=a.porque||''
-  document.getElementById('f-como').value=a.como||''
-  document.getElementById('f-saida').value=a.saida||''
-  document.getElementById('f-instr').value=a.instrucao||''
+  document.getElementById('f-oq').value=a.o_que||'';
+  document.getElementById('f-quem').value=a.quem_id||'';
+  document.getElementById('f-quando').value=a.quando||'';
+  document.getElementById('f-onde').value=a.onde||'';
+  document.getElementById('f-porque').value=a.porque||'';
+  document.getElementById('f-como').value=a.como||'';
+  document.getElementById('f-entrada').value=a.entrada||'';
+  document.getElementById('f-saida').value=a.saida||'';
+  document.getElementById('f-instr').value=a.instrucao||'';
+  const procWrap = document.getElementById('f-processo-wrap');
+  if(canEdit() && processos.length > 1) {
+    const procSel = document.getElementById('f-processo');
+    procSel.innerHTML = processos.map(p =>
+      `<option value="${p.id}"${p.id===a.processo_id?' selected':''}>${p.numero} — ${p.nome}</option>`
+    ).join('');
+    procWrap.style.display='';
+  } else {
+    procWrap.style.display='none';
+  }
   openModal('modal-ativ');
 }
 async function saveAtividade() {
   const oq=document.getElementById('f-oq').value.trim();
   if(!oq){toast('O campo "O Que" é obrigatório','error');return;}
-  const payload={o_que:oq,quem_id:document.getElementById('f-quem').value||null,
+  const payload={
+    o_que:oq,
+    quem_id:document.getElementById('f-quem').value||null,
     quando:document.getElementById('f-quando').value.trim()||null,
     onde:document.getElementById('f-onde').value.trim()||null,
     porque:document.getElementById('f-porque').value.trim()||null,
     como:document.getElementById('f-como').value.trim()||null,
+    entrada:document.getElementById('f-entrada').value.trim()||null,
     saida:document.getElementById('f-saida').value.trim()||null,
-    instrucao:document.getElementById('f-instr').value.trim()||null};
-  try {
-    if(editingAtivId){
+    instrucao:document.getElementById('f-instr').value.trim()||null
+  };
+  if(editingAtivId){
+    const novoProcId=parseInt(document.getElementById('f-processo').value);
+    if(novoProcId && novoProcId!==editingProcessoId){
+      const proc=processos.find(p=>p.id===novoProcId);
+      document.getElementById('confirm-proc-nome').textContent=`${proc.numero} — ${proc.nome}`;
+      pendingMoverPayload=payload;
+      pendingMoverProcId=novoProcId;
+      openModal('modal-confirm-mover');
+      return;
+    }
+    try {
       await api(`atividades?id=eq.${editingAtivId}`,{method:'PATCH',body:JSON.stringify(payload)});
       toast('Atividade atualizada ✓','success');
-    } else {
+      closeModal('modal-ativ');
+      await recalcularIncompletos();
+      await selectGrupo(currentGrupo);
+    } catch(e){toast('Erro: '+e.message,'error');}
+  } else {
+    try {
       const n=atividades.filter(a=>a.processo_id===editingProcessoId).length+1;
       await api('atividades',{method:'POST',body:JSON.stringify({...payload,processo_id:editingProcessoId,ordem:n})});
       toast('Atividade criada ✓','success');
-    }
+      closeModal('modal-ativ');
+      await recalcularIncompletos();
+      await selectGrupo(currentGrupo);
+    } catch(e){toast('Erro: '+e.message,'error');}
+  }
+}
+function cancelarMover() {
+  closeModal('modal-confirm-mover');
+  pendingMoverPayload=null;
+  pendingMoverProcId=null;
+}
+async function confirmarMover() {
+  closeModal('modal-confirm-mover');
+  const payload={...pendingMoverPayload, processo_id:pendingMoverProcId};
+  pendingMoverPayload=null; pendingMoverProcId=null;
+  try {
+    await api(`atividades?id=eq.${editingAtivId}`,{method:'PATCH',body:JSON.stringify(payload)});
+    toast('Atividade movida ✓','success');
     closeModal('modal-ativ');
     await recalcularIncompletos();
     await selectGrupo(currentGrupo);
@@ -1688,6 +1766,7 @@ function openDetailPanel(ativId) {
       { label: 'Onde',                    value: a.onde },
       { label: 'Por Que — Justificativa', value: a.porque },
       { label: 'Como — Passo a Passo',    value: a.como },
+      { label: 'Entrada',                 value: a.entrada },
       { label: 'Saída',                   value: a.saida },
       { label: 'Instrução de Trabalho',   value: a.instrucao, it: true },
     ]
