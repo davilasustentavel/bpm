@@ -60,6 +60,7 @@ Grupo de Processos
 | **Onde** | Não | Sistema ou local onde ocorre |
 | **Por Que** | Não | Justificativa da atividade |
 | **Como** | Não | Passo a passo de execução |
+| **Entrada** | Não | O que inicia ou alimenta a atividade |
 | **Saída** | Não | Resultado ou entrega esperada |
 | **Instrução de Trabalho** | Não | Código do documento de referência (ex: `IT-01`) |
 
@@ -123,7 +124,7 @@ Exibe os processos do grupo selecionado, cada um com sua tabela de atividades. N
 Ao clicar no **nome de um processo** ou no **nome de uma atividade** (sublinhado pontilhado), um painel desliza da direita exibindo todos os campos daquele item:
 
 - **Clique no nome do processo** — exibe grupo de origem, dono, descrição, entrada e saída
-- **Clique no nome da atividade** — exibe processo de origem, quem, quando, onde, por quê, como, saída e instrução de trabalho
+- **Clique no nome da atividade** — exibe processo de origem, quem, quando, onde, por quê, como, entrada, saída e instrução de trabalho
 - Clicar no mesmo item fecha o painel (toggle)
 - Clicar em outro item abre o novo diretamente
 - Pressionar **Esc** ou clicar fora do painel também fecha
@@ -202,6 +203,7 @@ Clique em **+ Atividade** no cabeçalho do processo desejado. O formulário acei
 - **Onde** — sistema ou local onde ocorre
 - **Por Que** — justificativa
 - **Como** — passo a passo
+- **Entrada** — o que inicia ou alimenta a atividade
 - **Saída** — resultado ou entrega esperada
 
 ### Reordenar atividades
