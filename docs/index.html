@@ -1150,7 +1150,8 @@ function renderMain() {
   const collapsed = JSON.parse(localStorage.getItem('proc-collapsed')||'{}');
   processos.forEach(proc => {
     const ativs = atividades.filter(a=>a.processo_id===proc.id);
-    const donoNome = proc.pessoas ? proc.pessoas.nome : null;
+    const dono = proc.pessoas || null;
+    const donoLabel = dono ? (showFuncao ? (dono.funcao||dono.nome) : dono.nome) : null;
     const isCollapsed = !!collapsed[proc.id];
     html += `
       <div class="processo-section" id="proc-${proc.id}">
@@ -1158,7 +1159,7 @@ function renderMain() {
           ${!rdAdmin ? `<span class="proc-drag" title="Arrastar para reordenar processo">⠿</span>` : ''}
           <span class="processo-num">${proc.numero}</span>
           <span class="processo-nome oq-clickable" onclick="openProcDetailPanel(${proc.id})">${proc.nome}</span>
-          ${donoNome ? `<span class="pessoa-tag" title="Dono do processo">👤 ${donoNome}</span>` : ''}
+          ${dono ? `<span class="pessoa-tag proc-dono-tag" data-nome="${dono.nome||''}" data-funcao="${dono.funcao||''}" title="Dono do processo">👤 ${donoLabel}</span>` : ''}
           <div class="processo-meta">
             <span class="pill">${ativs.length} atividade${ativs.length!==1?'s':''}</span>
             ${!rdEdit  ? `<button class="btn-add-small" onclick="openModalNova(${proc.id})">+ Atividade</button>` : ''}
@@ -1697,6 +1698,10 @@ function toggleFuncao() {
     if (td) td.innerHTML = label
       ? `<span class="pessoa-tag">👤 ${label}</span>`
       : `<span class="cell-empty">—</span>`;
+  });
+  document.querySelectorAll('.proc-dono-tag').forEach(span => {
+    const label = showFuncao ? (span.dataset.funcao||span.dataset.nome) : span.dataset.nome;
+    span.textContent = `👤 ${label}`;
   });
   const btn = document.getElementById('btn-toggle-quem');
   if (btn) btn.textContent = showFuncao ? '👤 Função' : '👤 Nome';
