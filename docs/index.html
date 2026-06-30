@@ -677,6 +677,7 @@ let editingGrupoId=null, editingPessoaId=null, editingProcId=null;
 let dragSrc=null, dragGrupoSrc=null, dragProcSrc=null;
 let currentUser=null;
 let pendingMoverPayload=null, pendingMoverProcId=null;
+let showFuncao=false;
 
 // ── AUTH HELPERS ──
 // canEdit  → admin OU editor: pode criar/editar atividades
@@ -1104,8 +1105,8 @@ async function selectGrupo(grupoId) {
     const procs = await api(`processos?grupo_id=eq.${grupoId}&select=id`);
     const ids = procs.length ? procs.map(p=>p.id).join(',') : '0';
     [processos, atividades] = await Promise.all([
-      api(`processos?grupo_id=eq.${grupoId}&select=*,pessoas(id,nome)&order=ordem`),
-      api(`atividades?select=*,pessoas(id,nome)&processo_id=in.(${ids})&order=ordem`)
+      api(`processos?grupo_id=eq.${grupoId}&select=*,pessoas(id,nome,funcao)&order=ordem`),
+      api(`atividades?select=*,pessoas(id,nome,funcao)&processo_id=in.(${ids})&order=ordem`)
     ]);
     renderMain();
   } catch(e) {
@@ -1135,6 +1136,7 @@ function renderMain() {
       </div>
       <div class="grupo-header-actions">
         ${groupComplete ? '<span class="badge badge-status" style="color:var(--green-border);background:var(--green-pale);border-color:var(--green-border)">✓ Grupo Completo</span>' : ''}
+        <button class="btn btn-ghost btn-sm btn-toggle-quem" id="btn-toggle-quem" onclick="toggleFuncao()" title="Alternar exibição do responsável">${showFuncao ? '👤 Função' : '👤 Nome'}</button>
         ${!rdAdmin ? `<button class="btn btn-ghost btn-sm" onclick="openModalProcesso(${g.id})">+ Novo Processo</button>` : ''}
         ${canAdmin() ? `<button class="btn btn-ghost btn-sm" onclick="openModalGrupoEdit(${g.id})">✏️ Editar Grupo</button>` : ''}
       </div>
@@ -1239,11 +1241,12 @@ function toggleProcesso(chev) {
 }
 
 function renderRow(a, readonly=false) {
-  const nome = a.pessoas ? a.pessoas.nome : null;
+  const p = a.pessoas;
+  const quemLabel = p ? (showFuncao ? (p.funcao||p.nome) : p.nome) : null;
   return `<tr ${!readonly?'draggable="true"':''} data-id="${a.id}" data-proc="${a.processo_id}">
     <td class="col-ordem">${!readonly?`<span class="drag-handle" title="Reordenar">⠿</span>`:''}</td>
     <td class="col-oq"><span class="oq-clickable" onclick="openDetailPanel(${a.id})">${a.o_que||'—'}</span></td>
-    <td class="col-quem">${nome?`<span class="pessoa-tag">👤 ${nome}</span>`:`<span class="cell-empty">—</span>`}</td>
+    <td class="col-quem">${quemLabel?`<span class="pessoa-tag">👤 ${quemLabel}</span>`:`<span class="cell-empty">—</span>`}</td>
     <td class="col-quando">${trunc(a.quando,60)||'<span class="cell-empty">—</span>'}</td>
     <td class="col-onde">${trunc(a.onde,50)||'<span class="cell-empty">—</span>'}</td>
     <td class="col-como">${trunc(a.como,80)||'<span class="cell-empty">—</span>'}</td>
@@ -1681,6 +1684,22 @@ async function saveAtividade() {
       await selectGrupo(currentGrupo);
     } catch(e){toast('Erro: '+e.message,'error');}
   }
+}
+function toggleFuncao() {
+  showFuncao = !showFuncao;
+  document.querySelectorAll('#main-content tbody tr').forEach(tr => {
+    const id = parseInt(tr.dataset.id);
+    const a  = atividades.find(x=>x.id===id);
+    if (!a) return;
+    const p  = a.pessoas;
+    const label = p ? (showFuncao ? (p.funcao||p.nome) : p.nome) : null;
+    const td = tr.querySelector('.col-quem');
+    if (td) td.innerHTML = label
+      ? `<span class="pessoa-tag">👤 ${label}</span>`
+      : `<span class="cell-empty">—</span>`;
+  });
+  const btn = document.getElementById('btn-toggle-quem');
+  if (btn) btn.textContent = showFuncao ? '👤 Função' : '👤 Nome';
 }
 function cancelarMover() {
   closeModal('modal-confirm-mover');
