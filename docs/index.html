@@ -1254,7 +1254,7 @@ function renderRow(a, readonly=false) {
     <td class="col-como">${trunc(a.como,80)||'<span class="cell-empty">—</span>'}</td>
     <td class="col-saida">${trunc(a.saida,60)||'<span class="cell-empty">—</span>'}</td>
     <td class="col-actions"><div class="row-actions">
-      ${a.instrucao?`<span class="instr-icon" title="Instrução de Trabalho: ${a.instrucao}">📋</span>`:''}
+      ${a.instrucao?`<span class="instr-icon" title="${a.instrucao}">📋</span>`:''}
       ${!readonly?`<button class="icon-btn" onclick="openModalEdit(${a.id})" title="Editar">✏️</button>`:''}
       ${canAdmin()?`<button class="icon-btn del" onclick="deleteAtividade(${a.id})" title="Excluir">🗑</button>`:''}
     </div></td>
