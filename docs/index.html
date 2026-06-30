@@ -677,7 +677,7 @@ let editingGrupoId=null, editingPessoaId=null, editingProcId=null;
 let dragSrc=null, dragGrupoSrc=null, dragProcSrc=null;
 let currentUser=null;
 let pendingMoverPayload=null, pendingMoverProcId=null;
-let showFuncao=false;
+let showFuncao=true;
 
 // ── AUTH HELPERS ──
 // canEdit  → admin OU editor: pode criar/editar atividades
@@ -1247,7 +1247,7 @@ function renderRow(a, readonly=false) {
   return `<tr ${!readonly?'draggable="true"':''} data-id="${a.id}" data-proc="${a.processo_id}">
     <td class="col-ordem">${!readonly?`<span class="drag-handle" title="Reordenar">⠿</span>`:''}</td>
     <td class="col-oq"><span class="oq-clickable" onclick="openDetailPanel(${a.id})">${a.o_que||'—'}</span></td>
-    <td class="col-quem">${quemLabel?`<span class="pessoa-tag">👤 ${quemLabel}</span>`:`<span class="cell-empty">—</span>`}</td>
+    <td class="col-quem">${quemLabel||'<span class="cell-empty">—</span>'}</td>
     <td class="col-quando">${trunc(a.quando,60)||'<span class="cell-empty">—</span>'}</td>
     <td class="col-onde">${trunc(a.onde,50)||'<span class="cell-empty">—</span>'}</td>
     <td class="col-como">${trunc(a.como,80)||'<span class="cell-empty">—</span>'}</td>
@@ -1695,9 +1695,7 @@ function toggleFuncao() {
     const p  = a.pessoas;
     const label = p ? (showFuncao ? (p.funcao||p.nome) : p.nome) : null;
     const td = tr.querySelector('.col-quem');
-    if (td) td.innerHTML = label
-      ? `<span class="pessoa-tag">👤 ${label}</span>`
-      : `<span class="cell-empty">—</span>`;
+    if (td) td.innerHTML = label || `<span class="cell-empty">—</span>`;
   });
   document.querySelectorAll('.proc-dono-tag').forEach(span => {
     const label = showFuncao ? (span.dataset.funcao||span.dataset.nome) : span.dataset.nome;
