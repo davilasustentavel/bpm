@@ -707,7 +707,11 @@ async function initAuth() {
       '<div class="loading">Selecione um grupo de processos para começar.</div>';
     renderSidebar();
     renderPessoasList();
-    if (session && grupos.length) selectGrupo(grupos[0].id);
+    if (session && grupos.length) {
+      const saved = parseInt(localStorage.getItem('ultimo-grupo'));
+      const target = grupos.find(g=>g.id===saved) ? saved : grupos[0].id;
+      selectGrupo(target);
+    }
   });
 }
 
@@ -864,7 +868,11 @@ async function init() {
     renderPessoasList();
     const sb = document.getElementById('status-badge');
     sb.textContent='● Online'; sb.style.color='var(--azul)';
-    if (grupos.length) selectGrupo(grupos[0].id);
+    if (grupos.length) {
+      const saved = parseInt(localStorage.getItem('ultimo-grupo'));
+      const target = grupos.find(g=>g.id===saved) ? saved : grupos[0].id;
+      selectGrupo(target);
+    }
   } catch(e) {
     toast('Erro ao conectar: '+e.message,'error');
     document.getElementById('status-badge').textContent='● Offline';
@@ -1100,7 +1108,7 @@ async function reorderProcessos(tbody, grupoId) {
 // SELECT GRUPO
 // ══════════════════════════════════════
 async function selectGrupo(grupoId) {
-  currentGrupo=grupoId; renderSidebar();
+  currentGrupo=grupoId; localStorage.setItem('ultimo-grupo',grupoId); renderSidebar();
   document.getElementById('main-content').innerHTML='<div class="loading"><div class="spinner"></div> Carregando…</div>';
   try {
     const procs = await api(`processos?grupo_id=eq.${grupoId}&select=id`);
