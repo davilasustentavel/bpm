@@ -1256,7 +1256,7 @@ function renderRow(a, readonly=false) {
     <td class="col-actions"><div class="row-actions">
       ${a.instrucao?`<span class="instr-icon" title="${a.instrucao}">📋</span>`:''}
       ${!readonly?`<button class="icon-btn" onclick="openModalEdit(${a.id})" title="Editar">✏️</button>`:''}
-      ${canAdmin()?`<button class="icon-btn del" onclick="deleteAtividade(${a.id})" title="Excluir">🗑</button>`:''}
+      ${(!readonly&&canAdmin())?`<button class="icon-btn del" onclick="deleteAtividade(${a.id})" title="Excluir">🗑</button>`:''}
     </div></td>
   </tr>`;
 }
