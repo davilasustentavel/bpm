@@ -475,6 +475,10 @@ tr.detail-active>td{background:var(--azul-pale)!important}
           <input id="pe-funcao" type="text" placeholder="ex: Analista Ambiental">
         </div>
         <div class="form-group">
+          <label>Liderado por</label>
+          <select id="pe-liderado-por"><option value="">— nenhum (topo da hierarquia) —</option></select>
+        </div>
+        <div class="form-group">
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;font-size:13px;font-weight:700;color:var(--text)">
             <input type="checkbox" id="pe-ativo" style="width:16px;height:16px;cursor:pointer;accent-color:var(--azul)">
             Usuário habilitado
@@ -1550,6 +1554,23 @@ Todas as atividades deste processo também serão excluídas.`)) return;
 // ══════════════════════════════════════
 // MODAIS — PESSOA
 // ══════════════════════════════════════
+function getDescendentes(id) {
+  const desc = new Set();
+  const queue = [id];
+  while (queue.length) {
+    const cur = queue.shift();
+    pessoas.forEach(p => { if (p.liderado_por === cur && !desc.has(p.id)) { desc.add(p.id); queue.push(p.id); } });
+  }
+  return desc;
+}
+function populateLideradoPorSelect(excludeId, currentVal) {
+  const sel = document.getElementById('pe-liderado-por');
+  const excluir = excludeId ? getDescendentes(excludeId) : new Set();
+  if (excludeId) excluir.add(excludeId);
+  sel.innerHTML = '<option value="">— nenhum (topo da hierarquia) —</option>';
+  pessoas.filter(p => !excluir.has(p.id))
+    .forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.nome + (p.funcao ? ` — ${p.funcao}` : ''); if (p.id === currentVal) o.selected = true; sel.appendChild(o); });
+}
 function openModalPessoa() {
   editingPessoaId=null;
   document.getElementById('modal-pessoa-title').textContent='Nova Pessoa';
@@ -1560,6 +1581,7 @@ function openModalPessoa() {
   const elEditor=document.getElementById('pe-editor');
   elEditor.checked=false; elEditor.disabled=false; elEditor.style.opacity='';
   document.getElementById('pe-admin').checked=false;
+  populateLideradoPorSelect(null, null);
   openModal('modal-pessoa');
 }
 function openModalPessoaEdit(id) {
@@ -1571,13 +1593,13 @@ function openModalPessoaEdit(id) {
   document.getElementById('pe-funcao').value=p.funcao||'';
   document.getElementById('pe-ativo').checked=p.ativo!==false;
   const elEditor=document.getElementById('pe-editor');
-  // Admins sempre têm editor implícito: mostrar marcado e desabilitado
   if(p.admin){
     elEditor.checked=true; elEditor.disabled=true; elEditor.style.opacity='.45';
   } else {
     elEditor.checked=!!p.editor; elEditor.disabled=false; elEditor.style.opacity='';
   }
   document.getElementById('pe-admin').checked=!!p.admin;
+  populateLideradoPorSelect(id, p.liderado_por);
   openModal('modal-pessoa');
 }
 async function savePessoa() {
@@ -1586,16 +1608,22 @@ async function savePessoa() {
   const funcao=document.getElementById('pe-funcao').value.trim()||null;
   const ativo=document.getElementById('pe-ativo').checked;
   const admin=document.getElementById('pe-admin').checked;
-  // Admins são sempre editores; para não-admins, ler o checkbox
   const editor=admin?true:document.getElementById('pe-editor').checked;
+  const lideradoPorVal=document.getElementById('pe-liderado-por').value;
+  const liderado_por=lideradoPorVal?parseInt(lideradoPorVal):null;
   if(!nome||!email){toast('Preencha nome e e-mail','error');return;}
+  // Validação anti-ciclo: lider não pode ser descendente da pessoa editada
+  if(editingPessoaId && liderado_por) {
+    const desc=getDescendentes(editingPessoaId);
+    if(desc.has(liderado_por)||liderado_por===editingPessoaId){toast('Referência circular detectada: esse líder está abaixo desta pessoa na hierarquia.','error');return;}
+  }
   try {
     if(editingPessoaId){
-      await api(`pessoas?id=eq.${editingPessoaId}`,{method:'PATCH',body:JSON.stringify({nome,email,funcao,ativo,admin,editor})});
-      const p=pessoas.find(x=>x.id===editingPessoaId); if(p){p.nome=nome;p.email=email;p.funcao=funcao;p.ativo=ativo;p.admin=admin;p.editor=editor;}
+      await api(`pessoas?id=eq.${editingPessoaId}`,{method:'PATCH',body:JSON.stringify({nome,email,funcao,ativo,admin,editor,liderado_por})});
+      const p=pessoas.find(x=>x.id===editingPessoaId); if(p){p.nome=nome;p.email=email;p.funcao=funcao;p.ativo=ativo;p.admin=admin;p.editor=editor;p.liderado_por=liderado_por;}
       toast('Pessoa atualizada ✓','success');
     } else {
-      const res=await api('pessoas',{method:'POST',body:JSON.stringify({nome,email,funcao,ativo,admin,editor})});
+      const res=await api('pessoas',{method:'POST',body:JSON.stringify({nome,email,funcao,ativo,admin,editor,liderado_por})});
       pessoas.push(res[0]);
       pessoas.sort((a,b)=>a.nome.localeCompare(b.nome));
       toast('Pessoa criada ✓','success');
