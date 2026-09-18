@@ -1,4 +1,4 @@
-# BPM d'Avila — Mapa de Processos · REV 02.1
+# BPM d'Avila — Mapa de Processos · REV 02.2
 
 Sistema web para gestão e visualização dos processos internos da **d'Avila Soluções Sustentáveis**. Permite cadastrar grupos de processos, processos e atividades, com controle de responsáveis, instruções de trabalho, campos descritivos de entrada/saída, painel de detalhes lateral, estado de conclusão e controle de acesso por perfil de usuário.
 
@@ -291,6 +291,7 @@ As notificações desaparecem automaticamente após 3,5 segundos.
 |---|---|
 | REV 02 | Autenticação, RLS, perfis de acesso, aba Pessoas, ícones de usuário, sincronização auth.users ↔ pessoas |
 | REV 02.1 | Painel lateral de detalhes (processos e atividades), campos Descrição/Entrada/Saída nos processos, base de conhecimento para agente IA, botão Leia-me para admins, perfil Editor de atividades, login obrigatório para visualização, restrição de exclusão a admins |
+| REV 02.2 | Rastreamento de autoria no banco de dados: colunas `criado_por`/`atualizado_por` (e `atualizado_em` onde faltava) em pessoas, grupos_processos, processos e atividades, preenchidas automaticamente por trigger a partir do usuário autenticado |
 
 ---
 

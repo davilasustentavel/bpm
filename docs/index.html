@@ -321,7 +321,7 @@ tr.detail-active>td{background:var(--azul-pale)!important}
     <button class="btn btn-ghost btn-sm" id="btn-readme" onclick="openReadme()" style="display:none" title="Manual do sistema">📖 Leia-me</button>
     <button class="btn btn-ghost btn-sm" id="btn-logout" onclick="logout()" style="display:none">Sair</button>
     <span class="badge badge-status" id="status-badge">● Conectando…</span>
-    <span class="badge badge-ver">REV 02.1</span>
+    <span class="badge badge-ver">REV 02.2</span>
   </div>
 </header>
 
@@ -1118,8 +1118,8 @@ async function selectGrupo(grupoId) {
     const procs = await api(`processos?grupo_id=eq.${grupoId}&select=id`);
     const ids = procs.length ? procs.map(p=>p.id).join(',') : '0';
     [processos, atividades] = await Promise.all([
-      api(`processos?grupo_id=eq.${grupoId}&select=*,pessoas(id,nome,funcao)&order=ordem`),
-      api(`atividades?select=*,pessoas(id,nome,funcao)&processo_id=in.(${ids})&order=ordem`)
+      api(`processos?grupo_id=eq.${grupoId}&select=*,pessoas!processos_dono_id_fkey(id,nome,funcao)&order=ordem`),
+      api(`atividades?select=*,pessoas!atividades_quem_id_fkey(id,nome,funcao)&processo_id=in.(${ids})&order=ordem`)
     ]);
     renderMain();
   } catch(e) {

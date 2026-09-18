@@ -1,4 +1,4 @@
-# BPM d'Avila — Mapa de Processos · REV 02.1
+# BPM d'Avila — Mapa de Processos · REV 02.2
 
 Sistema web para gestão e visualização dos processos internos da **d'Avila Soluções Sustentáveis**. Permite cadastrar grupos de processos, processos e atividades, com controle de responsáveis, instruções de trabalho, campos descritivos de entrada/saída, painel de detalhes lateral, estado de conclusão e controle de acesso por perfil de usuário.
 
@@ -19,8 +19,8 @@ O sistema se conecta automaticamente ao banco de dados em nuvem (Supabase). Ao c
 | Item | Quantidade |
 |---|---|
 | Grupos de processos | 17 |
-| Processos cadastrados | 55 |
-| Atividades cadastradas | 185 |
+| Processos cadastrados | 53 |
+| Atividades cadastradas | 193 |
 | Grupos marcados como completos | 2 (Gestão de Propostas · Gestão de Contas a Pagar) |
 
 ---
@@ -49,6 +49,7 @@ Grupo de Processos
 | **Descrição** | Não | Texto livre explicando o objetivo e contexto do processo |
 | **Entrada** | Não | O que inicia ou alimenta o processo |
 | **Saída** | Não | O produto ou resultado gerado pelo processo |
+| **Instrução de Trabalho** | Não | Código do documento de referência (ex: `IT-01`) |
 
 ### Campos de cada atividade
 
@@ -60,8 +61,8 @@ Grupo de Processos
 | **Onde** | Não | Sistema ou local onde ocorre |
 | **Por Que** | Não | Justificativa da atividade |
 | **Como** | Não | Passo a passo de execução |
+| **Entrada** | Não | O que inicia ou alimenta a atividade |
 | **Saída** | Não | Resultado ou entrega esperada |
-| **Instrução de Trabalho** | Não | Código do documento de referência (ex: `IT-01`) |
 
 ---
 
@@ -122,8 +123,8 @@ Exibe os processos do grupo selecionado, cada um com sua tabela de atividades. N
 
 Ao clicar no **nome de um processo** ou no **nome de uma atividade** (sublinhado pontilhado), um painel desliza da direita exibindo todos os campos daquele item:
 
-- **Clique no nome do processo** — exibe grupo de origem, dono, descrição, entrada e saída
-- **Clique no nome da atividade** — exibe processo de origem, quem, quando, onde, por quê, como, saída e instrução de trabalho
+- **Clique no nome do processo** — exibe grupo de origem, dono, descrição, entrada, saída e instrução de trabalho
+- **Clique no nome da atividade** — exibe processo de origem, quem, quando, onde, por quê, como, entrada e saída
 - Clicar no mesmo item fecha o painel (toggle)
 - Clicar em outro item abre o novo diretamente
 - Pressionar **Esc** ou clicar fora do painel também fecha
@@ -185,7 +186,7 @@ Quando um grupo está marcado como completo, nenhuma alteração é permitida:
 
 ### Criar um processo
 
-Com um grupo selecionado, clique em **+ Novo Processo** no cabeçalho da área principal. Preencha nome, número e, opcionalmente, dono, descrição, entrada e saída do processo.
+Com um grupo selecionado, clique em **+ Novo Processo** no cabeçalho da área principal. Preencha nome, número e, opcionalmente, dono, instrução de trabalho, descrição, entrada e saída do processo.
 
 ### Reordenar processos
 
@@ -197,11 +198,11 @@ Clique em **+ Atividade** no cabeçalho do processo desejado. O formulário acei
 
 - **O Que** *(obrigatório)* — descrição da tarefa
 - **Quem** — responsável (lista de pessoas cadastradas)
-- **Instrução de Trabalho** — código do documento de referência (ex: `IT-01`)
 - **Quando** — frequência ou gatilho
 - **Onde** — sistema ou local onde ocorre
 - **Por Que** — justificativa
 - **Como** — passo a passo
+- **Entrada** — o que inicia ou alimenta a atividade
 - **Saída** — resultado ou entrega esperada
 
 ### Reordenar atividades
@@ -290,6 +291,7 @@ As notificações desaparecem automaticamente após 3,5 segundos.
 |---|---|
 | REV 02 | Autenticação, RLS, perfis de acesso, aba Pessoas, ícones de usuário, sincronização auth.users ↔ pessoas |
 | REV 02.1 | Painel lateral de detalhes (processos e atividades), campos Descrição/Entrada/Saída nos processos, base de conhecimento para agente IA, botão Leia-me para admins, perfil Editor de atividades, login obrigatório para visualização, restrição de exclusão a admins |
+| REV 02.2 | Rastreamento de autoria no banco de dados: colunas `criado_por`/`atualizado_por` (e `atualizado_em` onde faltava) em pessoas, grupos_processos, processos e atividades, preenchidas automaticamente por trigger a partir do usuário autenticado |
 
 ---
 
